@@ -1,34 +1,17 @@
 import React, {useEffect, useRef, useState} from "react";
-import {View, Text, TextInput, Alert, Button, Modal, Vibration} from "react-native";
+import {View, Text, TextInput, FlatList, Alert, Button, Modal, Vibration} from "react-native";
 
-type MyTime = {
-	hours: number;
-	minutes: number;
-	seconds: number;
-};
 
-const UserTimer = (props: MyTime) => {
+const UserTimer = () => {
 	const [time, setTime] = useState(0);
-	const [userTime, setUserTime] = useState({
-		hours:0, minutes:0, seconds: 0
-	});
+	const [userHours, setHours] = useState('');
+	const [userMins, setMins] = useState('');
+	const [userSecs, setSecs] = useState('');
 	const [isRunning, setRunning] = useState(false);
 	const [isStarted, setStarted] = useState(false);
+	const [hasTime, setHasTime] = useState(false);
 	let interval = useRef(null);
-	const [isOpen, setOpen] = useState(false);
 	
-	function setUserHours(e){
-	setUserTime({...userTime,
-	hours: e});
-	}
-	function setUserMins(e){
-	setUserTime({...userTime,
-	minutes: e});
-	}
-	function setUserSecs(e){
-	setUserTime({...userTime,
-	seconds: e});
-	}
 	function formatTime(digs: number){
 		return (digs < 10) ? `0${digs}` : `${digs}`;
 	}
@@ -38,10 +21,11 @@ const UserTimer = (props: MyTime) => {
 		let rSecs = (rawTime%3600)%60;
 		return `${formatTime(rHours)}:${formatTime(rMins)}:${formatTime(rSecs)}`;
 	}
-	
-	const HandleTimerInput =()=>{
-	
-	function clickStart(){
+	function handleUserTime(){
+		setTime((userHours*3600) + (userMins*60) + (userSecs*1));
+		setHasTime(true);
+	}
+		function clickStart(){
 		interval.current = setInterval(() => {
 			setTime((time) => ((time > 0) ? time -1 : time));
 		}, 1000);
@@ -53,58 +37,43 @@ const clickSR = (isReset: boolean) =>{
 		setRunning(false);
 	if(isReset){
 		setTime(0);
-		setUserTime({hours:0,minutes:0,seconds:0});
+		setHours('');
+		setMins('');
+		setSecs('');
 		setStarted(false);
+		setHasTime(false);
 	}
 }
 
-	return (
-	<View>
-		{!isRunning ? (
-		<>
-<Button onPress={clickStart} title={(isStarted) ? "Resume" : "Start"} color = "#110088"></Button>
-<Button onPress={() => clickSR(true)} title="Reset" color = "#110088"></Button>
-<Button onPress={() => setOpen(true)} title="Set Time" color = "#110088"></Button>
-<Modal
-          animationType="slide"
-          transparent={true}
-          visible={isOpen}
-          onRequestClose={() => {
-			setOpen(!isOpen);
-          }}>
-          <View>
-		  <Text> Enter a time here</Text>
-			  <TextInput
-          onChangeText={setUserHours}
-          value={userTime.hours}
-          placeholder="Hours"
-          keyboardType="numeric"
-        />
-		
-              <Button
-                onPress={() => {
-					setTime(userTime.hours*3600 + userTime.minutes*60 + userTime.seconds);
-				setOpen(!isOpen)}} title="submit time">
-                </Button>
-			<Button
-                onPress={() => {
-				setOpen(!isOpen)}} title="cancel">
-                </Button>
-          </View>
-        </Modal>
-	</>
-	) : (	
-<Button onPress={() => clickSR(false)} title="Stop" color = "#110088"></Button>
-		)}
-
-</View>
-	);
-}
+	
 	
 	return (
 	<View>
-<Text> {toDisplayFormat(time)} </Text>
-<HandleTimerInput />
+		<TextInput
+		  value={userHours}
+          onChangeText={setHours}
+          placeholder="HRS"
+          keyboardType="numeric"
+        />
+		<TextInput
+		  value={userMins}
+          onChangeText={setMins}
+          placeholder="MINS"
+          keyboardType="numeric"
+        />
+		<TextInput
+		  value={userSecs}
+          onChangeText={setSecs}
+          placeholder="SECS"
+          keyboardType="numeric"
+        />
+		<Text> {toDisplayFormat(time)} </Text>
+<Button disabled={isRunning || !hasTime} onPress={clickStart} title={(isStarted) ? "Resume" : "Start"} color = "#110088"></Button>
+<Button disabled={isRunning || !hasTime} onPress={() => clickSR(true)} title="Reset" color = "#110088"></Button>
+<Button disabled={isRunning || isStarted} onPress={handleUserTime} title="Set Time" color = "#110088"></Button>
+
+<Button  disabled={!isRunning} onPress={() => clickSR(false)} title="Stop" color = "#110088"></Button>
+
 </View>
 	);
 }
