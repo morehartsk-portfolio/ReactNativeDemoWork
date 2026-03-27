@@ -1,6 +1,6 @@
 import React, {useEffect, useRef, useState} from "react";
-import {View, Text, TextInput, FlatList, Alert, Button, Modal, Vibration} from "react-native";
-
+import {View, Text, TextInput, FlatList, Alert, Button, Modal, Vibration, StyleSheet} from "react-native";
+//turn into two pages??
 
 const UserTimer = () => {
 	const [time, setTime] = useState(0);
@@ -9,7 +9,6 @@ const UserTimer = () => {
 	const [userSecs, setSecs] = useState('');
 	const [isRunning, setRunning] = useState(false);
 	const [isStarted, setStarted] = useState(false);
-	const [hasTime, setHasTime] = useState(false);
 	let interval = useRef(null);
 	
 	function formatTime(digs: number){
@@ -21,10 +20,13 @@ const UserTimer = () => {
 		let rSecs = (rawTime%3600)%60;
 		return `${formatTime(rHours)}:${formatTime(rMins)}:${formatTime(rSecs)}`;
 	}
+	
 	function handleUserTime(){
+		
+		
 		setTime((userHours*3600) + (userMins*60) + (userSecs*1));
-		setHasTime(true);
 	}
+	
 		function clickStart(){
 		interval.current = setInterval(() => {
 			setTime((time) => ((time > 0) ? time -1 : time));
@@ -41,14 +43,27 @@ const clickSR = (isReset: boolean) =>{
 		setMins('');
 		setSecs('');
 		setStarted(false);
-		setHasTime(false);
 	}
 }
 
-	
+
+	const RenderButtons =()=>{
+		return(<View>
+	{isRunning ?
+	(<Button onPress={() => clickSR(false)} title="Stop" color = "#110088"></Button>):
+	(<>
+	<Button onPress={clickStart} title={(isStarted) ? "Resume" : "Start"} color = "#110088"></Button>
+<Button onPress={() => clickSR(true)} title="Reset" color = "#110088"></Button>
+<Button onPress={handleUserTime} title="Set Time" color = "#110088"></Button>
+</>)
+	}
+	</View>);
+	}
 	
 	return (
 	<View>
+	<RenderButtons />
+	
 		<TextInput
 		  value={userHours}
           onChangeText={setHours}
@@ -68,11 +83,7 @@ const clickSR = (isReset: boolean) =>{
           keyboardType="numeric"
         />
 		<Text> {toDisplayFormat(time)} </Text>
-<Button disabled={isRunning || !hasTime} onPress={clickStart} title={(isStarted) ? "Resume" : "Start"} color = "#110088"></Button>
-<Button disabled={isRunning || !hasTime} onPress={() => clickSR(true)} title="Reset" color = "#110088"></Button>
-<Button disabled={isRunning || isStarted} onPress={handleUserTime} title="Set Time" color = "#110088"></Button>
-
-<Button  disabled={!isRunning} onPress={() => clickSR(false)} title="Stop" color = "#110088"></Button>
+ 
 
 </View>
 	);
