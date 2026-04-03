@@ -1,18 +1,22 @@
 import React, {useEffect, useRef, useState} from "react";
-import {View, Text, TextInput, FlatList, Alert, Button, Modal, Vibration, StyleSheet} from "react-native";
+import {View, Text, TextInput, FlatList, Alert, TouchableHighlight, Button, Modal, Vibration, StyleSheet} from "react-native";
 import {TimeObject} from "./TimeObject";
 import { useNavigation } from '@react-navigation/native';
+import { useRoute } from '@react-navigation/native'; // Import useRoute hook for accessing route 
+/**
+https://stackoverflow.com/questions/72684118/update-parameters-value-between-screens-in-react-native was a big help*/
 
-
-const IdleTimer = () => {
+function IdleTimer(){
 	const defaultTime = {hours: '', minutes: '', seconds:''};
 	const [userTime, setUserTime] = useState(defaultTime);
-	const [lastUserTime, setLastUT] = useState(defaultTime);
+	const [lastTime, setLastTime] = useState(defaultTime);
 	const navigation = useNavigation();
-	
-	function formatTime(digs: number){
-		return (digs == "") ? 0 : digs;
-	}
+	const route = useRoute();
+	useEffect(() => {
+    if (route.params?.userLastTime) {
+        setLastTime(route.params.userLastTime);
+    }
+  }, [route.params?.userLastTime]);
 
 	function handleSetHours(e){
 		setUserTime({...userTime, hours: e});
@@ -23,33 +27,21 @@ const IdleTimer = () => {
 	function handleSetSecs(e){
 		setUserTime({...userTime, seconds: e});
 	}
-	function handleFormatTime(){
-		setUserTime({...userTime,
-		hours: formatTime(userTime.hours),
-		minutes: formatTime(userTime.minutes),
-		seconds: formatTime(userTime.seconds)});
-	}
 const goToMainTimer = () => {
-        navigation.navigate('MainTimer', {
-            rTime:{
-				hours: userTime.hours,
-				minutes: userTime.minutes,
-				seconds: userTime.seconds
-			}, // Pass the current value of 'message' to the 'Message' screen
-        });
+	navigation.navigate('MainTimer', {
+            timeSet: userTime,
+          });
     };
 
 	//this will later send stuff to the timer part lol
 	function submitTime(){
-		handleFormatTime();
-		setLastUT(userTime);
 		goToMainTimer();
 	}
 	function resetTime(){
 		setUserTime(defaultTime);
 	}
 	function useLastTime(){
-		setUserTime(lastUserTime);
+		setUserTime(lastTime);
 	}
 	
 	return (
@@ -73,9 +65,26 @@ const goToMainTimer = () => {
           placeholder="SECS"
           keyboardType="numeric"
         />
-<Button onPress={submitTime} title="Submit time" color = "#110088"></Button>
-<Button onPress={resetTime} title="Clear" color = "#110088"></Button>
-<Button onPress={useLastTime} title="Use Last Timer" color = "#110088"></Button>
+		<TouchableHighlight
+  activeOpacity={0.6}
+  underlayColor="#00DDDD"
+  onPress={submitTime}>
+  <Text>Submit Time</Text>
+</TouchableHighlight>
+
+		<TouchableHighlight
+  activeOpacity={0.6}
+  underlayColor="#DD00DD"
+  onPress={resetTime}>
+  <Text>Clear</Text>
+</TouchableHighlight>
+
+		<TouchableHighlight
+  activeOpacity={0.6}
+  underlayColor="#DDDD00"
+  onPress={useLastTime}>
+  <Text>Use last time</Text>
+</TouchableHighlight>
  
 
 </View>
@@ -83,3 +92,4 @@ const goToMainTimer = () => {
 }
 
 export default IdleTimer;
+

@@ -1,24 +1,23 @@
 import React, {useEffect, useRef, useState} from "react";
 import {View, Text, TextInput, FlatList, Alert, TouchableHighlight, Button, Modal, Vibration, StyleSheet} from "react-native";
 import {TimeObject} from "./TimeObject";
-import { useNavigation } from '@react-navigation/native';
 import { useRoute } from '@react-navigation/native'; // Import useRoute hook for accessing route 
+import { useNavigation } from '@react-navigation/native';
 
 
-function MainTimer(){
-	const navigation = useNavigation();
-	const route = useRoute();
-  const {timeSet} = route.params;
-  let currTimerSet = (3600*convertDigit(timeSet.hours)) + (60*convertDigit(timeSet.minutes)) + (1*convertDigit(timeSet.seconds));
+const TestTimer = () => {
+  const navigation = useNavigation();
+  const route = useRoute();
+  const {timeSet, message} = route.params;
+  let currTimerSet = (3600*timeSet.hours) + (60*timeSet.minutes) + (1*timeSet.seconds);
 	const [time, setTime] = useState(currTimerSet);
-	const [isRunning, setRunning] = useState(true);
-	const [hasReset, setResetFlag] = useState(false);
+	const [isRunning, setRunning] = useState(false);
+	const [isStarted, setStarting] = useState(false);
+const [buttonText, setButtonText] = useState("Start");
+	let interval = useRef(null);
 		
 	function formatTime(digs: number){
 		return (digs < 10) ? `0${digs}` : `${digs}`;
-	}	
-	function convertDigit(digs: number){
-		return (isNaN(digs)) ? 0 : digs;
 	}
 	function toDisplayFormat(rawTime:number){
 		let rHours = Math.floor(rawTime/3600);
@@ -28,44 +27,42 @@ function MainTimer(){
 	}
 	const goToIdleTimer = () => {
         navigation.navigate('IdleTimer', {
-			userLastTime: timeSet,
+			lastTime: timeSet,
         });
     };
 	
-	const toggleTimer = () => {
-		setRunning(!isRunning);
-		setResetFlag(false);
-	}
+		function clickStart(){
+		interval.current = setInterval(() => {
+			setTime((time) => ((time > 0) ? time -1 : time));
+		}, 1000);
+		setRunning(true);
+		setStarting(true);
+		setButtonText("Stop");
+			
+}
 
-
-const clickSR = () =>{
+const clickSR = (isReset: boolean) =>{
+		clearInterval(interval.current);
+		setRunning(false);
+		setButtonText("Resume");
+	if(isReset){
 		setTime(currTimerSet);
-		setResetFlag(true);
+		setStarting(false);
+	}
 }
 
 
-function handleButtonText(){
+
+function handleStartClick(){
 	if(isRunning){
-		return "Stop";
+		clickSR(false);
 	}else{
-		return (hasReset) ? "Start" : "Resume";
-		
+		clickStart();
 	}
 	
 }
 
-useEffect(() => {
-    let interval = null;
-    if (isRunning) {
-		
-      interval = setInterval(() => {
-        setTime(time => ((time > 0) ? time - 1 : time));
-      }, 1000);
-    }else if (!isRunning && time !== 0) {
-      clearInterval(interval);
-    }
-    return () => clearInterval(interval);
-  }, [isRunning, time]);
+
 
 	return (
 	<View>
@@ -73,13 +70,13 @@ useEffect(() => {
 	<TouchableHighlight
   activeOpacity={0.6}
   underlayColor="#DDDD00"
-  onPress={toggleTimer}>
-  <Text>{handleButtonText()}</Text>
+  onPress={handleStartClick}>
+  <Text>{buttonText}</Text>
 </TouchableHighlight>
 		<TouchableHighlight
   activeOpacity={0.6}
   underlayColor="#DDDD00"
-  onPress={() => clickSR()}>
+  onPress={() => clickSR(true)}>
   <Text>Reset</Text>
 </TouchableHighlight>
 		<TouchableHighlight
@@ -95,4 +92,4 @@ useEffect(() => {
 	);
 }
 
-export default MainTimer;
+export default TestTimer;
