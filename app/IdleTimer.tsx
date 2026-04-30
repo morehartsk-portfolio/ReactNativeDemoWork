@@ -1,68 +1,99 @@
 import React, {useEffect, useRef, useState} from "react";
-import {View, Text, TextInput, FlatList, Alert, TouchableHighlight, Button, Modal, Vibration, StyleSheet} from "react-native";
+import {View, Platform, Text, TextInput, FlatList, Alert, TouchableHighlight, Button, Modal, Vibration, StyleSheet} from "react-native";
 import {TimeObject} from "./TimeObject";
 import { useNavigation } from '@react-navigation/native';
 import { useRoute } from '@react-navigation/native'; // Import useRoute hook for accessing route 
+import AsyncStorage from "@react-native-async-storage/async-storage";
+
 /**
 https://stackoverflow.com/questions/72684118/update-parameters-value-between-screens-in-react-native was a big help*/
 
 function IdleTimer(){
-	const defaultTime = {hours: '', minutes: '', seconds:''};
-	const [userTime, setUserTime] = useState(defaultTime);
-	const [lastTime, setLastTime] = useState(defaultTime);
+		const [userTime, setUserTime] = useState('');
+		const [octopus, setOctopus] = useState('Not an octopus');
+	const [isPreset, setPresetTime] = useState(false);
 	const navigation = useNavigation();
 	const route = useRoute();
-	useEffect(() => {
-    if (route.params?.userLastTime) {
-        setLastTime(route.params.userLastTime);
-    }
-  }, [route.params?.userLastTime]);
+	
+const storeTime = async (value) => {
+  try {
+    await AsyncStorage.setItem('lastUserTime', value);
+  } catch (e) {
+    // saving error
+	
+  }
+};
 
-	function handleSetHours(e){
-		setUserTime({...userTime, hours: e});
-	}
-	function handleSetMins(e){
-		setUserTime({...userTime, minutes: e});
-	}
-	function handleSetSecs(e){
-		setUserTime({...userTime, seconds: e});
-	}
+const getTime = async () => {
+  try {
+    const value = await AsyncStorage.getItem('lastUserTime');
+	console.log(value);
+	setUserTime(value);
+	setOctopus("Octopus");
+  } catch (e) {
+	  setUserTime("Not an octopus");
+	  
+    // error reading value
+  }
+};
+
 const goToMainTimer = () => {
 	navigation.navigate('MainTimer', {
             timeSet: userTime,
           });
     };
 
+
 	//this will later send stuff to the timer part lol
 	function submitTime(){
+		if(userTime >= 5 && userTime <= 60){
+			storeTime(userTime);
 		goToMainTimer();
+		}else{
+			resetTime();
+		}
 	}
 	function resetTime(){
-		setUserTime(defaultTime);
+		setUserTime('');
 	}
 	function useLastTime(){
-		setUserTime(lastTime);
+		getTime();
+	}
+	function handlePresetTime(){
+		setPresetTime(!isPreset);
+	}
+	
+	function PresetTimes(){
+		return (isPreset ?
+		<>
+		<TouchableHighlight
+  activeOpacity={0.6}
+  underlayColor="#DDDD00"
+  onPress={() => setUserTime('5')}>
+  <Text>5 MIN</Text>
+</TouchableHighlight>
+		<TouchableHighlight
+  activeOpacity={0.6}
+  underlayColor="#DDDD00"
+  onPress={() => setUserTime('30')}>
+  <Text>30 MIN</Text>
+</TouchableHighlight>
+		<TouchableHighlight
+  activeOpacity={0.6}
+  underlayColor="#DDDD00"
+  onPress={() => setUserTime('60')}>
+  <Text>1 HR</Text>
+</TouchableHighlight>
+		</> : null);
 	}
 	
 	return (
 	<View>
 	
 		<TextInput
-		  value={userTime.hours}
-          onChangeText={handleSetHours}
-          placeholder="HRS"
-          keyboardType="numeric"
-        />
-		<TextInput
-		  value={userTime.minutes}
-          onChangeText={handleSetMins}
-          placeholder="MINS"
-          keyboardType="numeric"
-        />
-		<TextInput
-		  value={userTime.seconds}
-          onChangeText={handleSetSecs}
-          placeholder="SECS"
+		  value={userTime}
+          onChangeText={setUserTime}
+          placeholder="Please enter a number between 5 and 60"
           keyboardType="numeric"
         />
 		<TouchableHighlight
@@ -85,7 +116,16 @@ const goToMainTimer = () => {
   onPress={useLastTime}>
   <Text>Use last time</Text>
 </TouchableHighlight>
- 
+
+		<TouchableHighlight
+  activeOpacity={0.6}
+  underlayColor="#EEDD00"
+  onPress={handlePresetTime}>
+  <Text>Use Preset Time</Text>
+</TouchableHighlight>
+<PresetTimes />
+ <Text> You are using: {Platform.OS}</Text>
+ <Text> Your last time was {octopus} </Text>
 
 </View>
 	);

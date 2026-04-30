@@ -9,7 +9,7 @@ function MainTimer(){
 	const navigation = useNavigation();
 	const route = useRoute();
   const {timeSet} = route.params;
-  let currTimerSet = (3600*convertDigit(timeSet.hours)) + (60*convertDigit(timeSet.minutes)) + (1*convertDigit(timeSet.seconds));
+  let currTimerSet = 60*convertDigit(timeSet);
 	const [time, setTime] = useState(currTimerSet);
 	const [isRunning, setRunning] = useState(true);
 	const [hasReset, setResetFlag] = useState(false);
@@ -28,7 +28,7 @@ function MainTimer(){
 	}
 	const goToIdleTimer = () => {
         navigation.navigate('IdleTimer', {
-			userLastTime: timeSet,
+
         });
     };
 	
@@ -53,6 +53,23 @@ function handleButtonText(){
 	}
 	
 }
+function HandleButtonDisplay(){
+	return (!isRunning ?
+		<>
+				<TouchableHighlight
+  activeOpacity={0.6}
+  underlayColor="#DDDD00"
+  onPress={() => clickSR()}>
+  <Text>Reset</Text>
+</TouchableHighlight>
+		<TouchableHighlight
+  activeOpacity={0.6}
+  underlayColor="#DDDD00"
+  onPress={() => goToIdleTimer()}>
+  <Text>Edit Timer</Text>
+</TouchableHighlight>
+		</> : null);
+}
 
 useEffect(() => {
     let interval = null;
@@ -76,19 +93,7 @@ useEffect(() => {
   onPress={toggleTimer}>
   <Text>{handleButtonText()}</Text>
 </TouchableHighlight>
-		<TouchableHighlight
-  activeOpacity={0.6}
-  underlayColor="#DDDD00"
-  onPress={() => clickSR()}>
-  <Text>Reset</Text>
-</TouchableHighlight>
-		<TouchableHighlight
-  activeOpacity={0.6}
-  underlayColor="#DDDD00"
-  onPress={() => goToIdleTimer()}>
-  <Text>Edit Timer</Text>
-</TouchableHighlight>
-	
+	<HandleButtonDisplay />
  
 
 </View>
